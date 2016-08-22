@@ -5,6 +5,7 @@ public class PlayerActions : MonoBehaviour {
 
     PhotonView view;
     PlayerMovement movement;
+    TimeCollider positionHistory;
 
     [SerializeField]
     protected Transform muzzle;
@@ -48,71 +49,39 @@ public class PlayerActions : MonoBehaviour {
     [PunRPC]
     void FireWeapon(Vector3 position, Vector3 direction, PhotonMessageInfo info)
     {
+        GameObject bulletVFX = Instantiate(bulletVFXPrefab);
+        LineRenderer bulletLineRenderer = bulletVFX.GetComponent<LineRenderer>();
+        bulletLineRenderer.SetPosition(0, position);
+        bulletLineRenderer.SetPosition(1, position + 100 * direction);
+        Destroy(bulletVFX, 2);
+
         if (view.isMine)
         {
             Destroy(Instantiate(muzzleVFXPrefab, position, Quaternion.identity), 1);
-
-            GameObject bulletVFX = Instantiate(bulletVFXPrefab);
-            LineRenderer bulletLineRenderer = bulletVFX.GetComponent<LineRenderer>();
-            bulletLineRenderer.SetPosition(0, position);
-            bulletLineRenderer.SetPosition(1, position + 100 * direction);
-            Destroy(bulletVFX, 2);
         }
         else
         {
             Destroy(Instantiate(muzzleVFXPrefab, muzzle.position, Quaternion.identity), 1);
 
-            foreach (KeyValuePair<PhotonView, PlayerMovement> player in PlayerMovement.playerMovements)
+            if (!PhotonNetwork.isMasterClient)
             {
-                if (player.Key == view)
-                {
-                    continue;
-                }
-
-                if (player.Value.positionHistory.Count == 0)
-                {
-                    continue;
-                }
-
-                //acquire player position at moment shot was fired
-                double shotTime = info.timestamp - movement.BufferDelaySecs;
-
-                TimestampedData<Vector3> previous = player.Value.positionHistory.Peek();
-                foreach (TimestampedData<Vector3> timestampedPosition in player.Value.positionHistory)
-                {
-                    if (timestampedPosition.outputTime < shotTime)
-                    {
-                        float lerpValue = Mathd.InverseLerp(timestampedPosition.outputTime, previous.outputTime, shotTime);
-
-                        Vector3 targetPosition = Vector3.Lerp(timestampedPosition, previous, lerpValue);
-
-                        Destroy(Instantiate(targetSpherePrefab, targetPosition, Quaternion.identity), 2);
-
-                        bool hit = TimePhysics.SphereIntersection(targetPosition, 0.5f, position, direction);
-
-                        if (hit)
-                        {
-                            player.Value.GetComponent<PlayerStatus>().health += 1;
-                            //TODO: sort by distance
-                            goto END; //break out of all loops
-                        }
-
-                        break;
-                    }
-                    else
-                    {
-                        previous = timestampedPosition;
-                    }
-                }
+                return;
             }
 
-        END:GameObject bulletVFX = Instantiate(bulletVFXPrefab);
-            LineRenderer bulletLineRenderer = bulletVFX.GetComponent<LineRenderer>();
-            bulletLineRenderer.SetPosition(0, position);
-            bulletLineRenderer.SetPosition(1, position + 100 * direction);
-            Destroy(bulletVFX, 2);
-        }
+            List<TimeCollider> hitColliders = TimePhysics.RaycastAll(position, direction, info.timestamp - movement.BufferDelaySecs);
 
-        
+            foreach (TimeCollider col in hitColliders)
+            {
+                if (col.transform != this.transform)
+                {
+                    col.GetComponent<PlayerStatus>().health += 1;
+#if UNITY_EDITOR
+                    Destroy(Instantiate(targetSpherePrefab, col.PositionAtTime(info.timestamp - movement.BufferDelaySecs), Quaternion.identity), 2);
+#endif
+                    break;
+
+                }
+            }
+        }
     }
 }

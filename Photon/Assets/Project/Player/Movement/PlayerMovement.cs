@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 
 [RequireComponent(typeof(PhotonView))]
-public class PlayerMovement : MonoBehaviour {
-
-    public static Dictionary<PhotonView, PlayerMovement> playerMovements = new Dictionary<PhotonView, PlayerMovement>();
-
+[RequireComponent(typeof(TimeCollider))]
+public class PlayerMovement : MonoBehaviour
+{
     Rigidbody rigid;
     PhotonView view;
     Vector3 movementInput;
     double latestData = 0;
     Vector3 prevPos = Vector3.zero;
+    TimeCollider col;
 
     Queue<TimestampedData<Vector3>> bufferedTargetPositions = new Queue<TimestampedData<Vector3>>();
     TimestampedData<Vector3> previousTargetPosition;
@@ -18,9 +18,6 @@ public class PlayerMovement : MonoBehaviour {
     /// The most recent target position data whose outputTime is in the past.
     /// </summary>
     TimestampedData<Vector3> currentTargetPosition;
-    Vector3 velocity;
-
-    public Stack<TimestampedData<Vector3>> positionHistory = new Stack<TimestampedData<Vector3>>(); //TODO : build my own data structure
 
     Queue<TimestampedData<Quaternion>> bufferedTargetRotations = new Queue<TimestampedData<Quaternion>>();
     /// <summary>
@@ -28,7 +25,7 @@ public class PlayerMovement : MonoBehaviour {
     /// </summary>
     TimestampedData<Quaternion> currentTargetRotation;
 
-    public Stack<TimestampedData<Quaternion>> rotationHistory = new Stack<TimestampedData<Quaternion>>();
+    Stack<TimestampedData<Quaternion>> rotationHistory = new Stack<TimestampedData<Quaternion>>();
 
     [SerializeField]
     protected float speed;
@@ -43,12 +40,16 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField]
     protected Transform cameraRotator;
 
+    public TimePhysicsLayers Layer { get { return TimePhysicsLayers.PLAYERS; } }
+    public float Radius { get { return 1; } }
+
 	// Use this for initialization
-	void Start () {
+    void Awake()
+    {
         rigid = GetComponent<Rigidbody>();
         view = GetComponent<PhotonView>();
+        col = GetComponent<TimeCollider>();
         currentTargetPosition = previousTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time, this.transform.position);
-        velocity = Vector3.zero;
         currentTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time, this.transform.rotation);
         Cursor.visible = false;
         if (!view.isMine)
@@ -56,13 +57,6 @@ public class PlayerMovement : MonoBehaviour {
             Destroy(rigid);
             rigid = null;
         }
-
-        playerMovements[view] = this;
-	}
-
-    void OnDestroy()
-    {
-        playerMovements.Remove(view);
     }
 
     void Update()
@@ -106,7 +100,6 @@ public class PlayerMovement : MonoBehaviour {
             //we have new data we can use
             previousTargetPosition = currentTargetPosition;
             currentTargetPosition = bufferedTargetPositions.Dequeue();
-            velocity = TimestampedData<Vector3>.getVelocity(previousTargetPosition, currentTargetPosition);
         }
 
 
@@ -156,7 +149,7 @@ public class PlayerMovement : MonoBehaviour {
             TimestampedData<Vector3> positionData = new TimestampedData<Vector3>(info.timestamp, transform.position);
             TimestampedData<Quaternion> rotationData = new TimestampedData<Quaternion>(info.timestamp, transform.rotation);
 
-            positionHistory.Push(positionData);
+            col.Add(positionData);
             rotationHistory.Push(rotationData);
         }
         else
@@ -182,43 +175,8 @@ public class PlayerMovement : MonoBehaviour {
             bufferedTargetPositions.Enqueue(positionData);
             bufferedTargetRotations.Enqueue(rotationData);
 
-            positionHistory.Push(positionData);
+            col.Add(positionData);
             rotationHistory.Push(rotationData);
-        }
-    }
-}
-
-public class TimestampedData<T>
-{
-    /// <summary>
-    /// Time at which this data will be exactly displayed to the player.
-    /// </summary>
-    public readonly double outputTime;
-
-    public readonly T data;
-
-    public TimestampedData(double outputTime, T data)
-    {
-        this.outputTime = outputTime;
-        this.data = data;
-    }
-
-    public static implicit operator T(TimestampedData<T> timestampedData)
-    {
-        return timestampedData.data;
-    }
-
-    public static Vector3 getVelocity(TimestampedData<Vector3> start, TimestampedData<Vector3> end)
-    {
-        Vector3 distanceDifference = end.data - start.data;
-        if (distanceDifference.sqrMagnitude == 0)
-        {
-            return Vector3.zero;
-        }
-        else
-        {
-            float timeDifference = (float)(end.outputTime - start.outputTime);
-            return distanceDifference / timeDifference;
         }
     }
 }
