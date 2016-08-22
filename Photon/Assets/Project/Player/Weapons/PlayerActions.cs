@@ -50,9 +50,7 @@ public class PlayerActions : MonoBehaviour {
     void FireWeapon(Vector3 position, Vector3 direction, PhotonMessageInfo info)
     {
         GameObject bulletVFX = Instantiate(bulletVFXPrefab);
-        LineRenderer bulletLineRenderer = bulletVFX.GetComponent<LineRenderer>();
-        bulletLineRenderer.SetPosition(0, position);
-        bulletLineRenderer.SetPosition(1, position + 100 * direction);
+        bulletVFX.GetComponent<RaygunRay>().playShotVFX(position, direction);
         Destroy(bulletVFX, 2);
 
         if (view.isMine)

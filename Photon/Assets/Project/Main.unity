@@ -804,8 +804,6 @@ GameObject:
   m_Component:
   - 4: {fileID: 2006927295}
   - 114: {fileID: 2006927294}
-  - 114: {fileID: 2006927297}
-  - 114: {fileID: 2006927296}
   m_Layer: 0
   m_Name: Static Stuff
   m_TagString: Untagged
@@ -838,54 +836,3 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
---- !u!114 &2006927296
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2006927293}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 696a5174ff5e707479b3540eb56d14b7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GuiSize: {x: 200, y: 300}
-  InputLine: 
-  guiCenteredRect:
-    x: 0
-    y: 0
-    width: 0
-    height: 0
-  chatComponent: {fileID: 0}
-  helpText: 57656c636f6d6520746f207468652050686f746f6e20436861742064656d6f2e0a456e7465722061206e69636b6e616d6520746f2073746172742e20546869732064656d6f20646f6573206e6f74207265717569726520757365727320746f2061757468656e7469636174652e
---- !u!114 &2006927297
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2006927293}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02d148d0890b2d44dbdf7f1c1b39a499, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ChatAppId: 
-  ChannelsToJoinOnConnect: []
-  friends: []
-  HistoryLengthToFetch: 0
-  DemoPublishOnSubscribe: 0
-  selectedChannelName: 
-  selectedChannelIndex: 0
-  doingPrivateChat: 0
-  GuiRect:
-    x: 0
-    y: 0
-    width: 250
-    height: 300
-  IsVisible: 1
-  AlignBottom: 0
-  FullScreen: 0
-  inputLine: 
-  userIdInput: 
-  scrollPos: {x: 0, y: 0}
-  <UserName>k__BackingField: 

@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: RaygunRay
-  m_Shader: {fileID: 200, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 4800000, guid: 543ed4b39da985e44b5c3be9153aaf67, type: 3}
   m_ShaderKeywords: _EMISSION
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
@@ -81,7 +81,7 @@ Material:
       second: 1
     - first:
         name: _DistortionStrength
-      second: 3
+      second: 0.2
     - first:
         name: _DstBlend
       second: 0
