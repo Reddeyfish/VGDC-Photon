@@ -63,11 +63,6 @@ public class PlayerActions : MonoBehaviour {
         {
             Destroy(Instantiate(muzzleVFXPrefab, muzzle.position, Quaternion.identity), 1);
 
-            if (!PhotonNetwork.isMasterClient)
-            {
-                return;
-            }
-
             List<TimeCollider> hitColliders = TimePhysics.RaycastAll(position, direction, info.timestamp - movement.BufferDelaySecs);
 
             foreach (TimeCollider col in hitColliders)
