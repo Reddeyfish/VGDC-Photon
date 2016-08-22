@@ -19,5 +19,6 @@ public class SpawnPlayer : Photon.MonoBehaviour {
         mainCamera.transform.localRotation = Quaternion.identity;
         Camera.main.gameObject.SetActive(false);
         Debug.Log(PhotonNetwork.isMasterClient ? "You are the master client" : "You are not the master client");
+        Cursor.visible = false;
     }
 }

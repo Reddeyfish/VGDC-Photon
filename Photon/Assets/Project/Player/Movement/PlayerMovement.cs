@@ -51,7 +51,6 @@ public class PlayerMovement : MonoBehaviour
         col = GetComponent<TimeCollider>();
         currentTargetPosition = previousTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time, this.transform.position);
         currentTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time, this.transform.rotation);
-        Cursor.visible = false;
         if (!view.isMine)
         {
             Destroy(rigid);

@@ -4,6 +4,8 @@ using System.Collections;
 
 public class PlayerStatus : MonoBehaviour {
 
+    PhotonView view;
+
     float _health = 0;
     public float health
     {
@@ -18,6 +20,15 @@ public class PlayerStatus : MonoBehaviour {
     [SerializeField]
     protected Text healthbar;
 
+    [SerializeField]
+    protected Text username;
+
+    public void Start()
+    {
+        view = GetComponentInParent<PhotonView>();
+        UpdateUsername();
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.isWriting)
@@ -28,5 +39,15 @@ public class PlayerStatus : MonoBehaviour {
         {
             health = (float)stream.ReceiveNext();
         }
+    }
+
+    void OnPhotonPlayerPropertiesChanged(object[] playerAndUpdatedProps)
+    {
+        UpdateUsername();
+    }
+
+    public void UpdateUsername()
+    {
+        username.text = view.owner.name;
     }
 }
