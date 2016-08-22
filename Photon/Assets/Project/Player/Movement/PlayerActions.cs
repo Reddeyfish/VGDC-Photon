@@ -5,7 +5,6 @@ public class PlayerActions : MonoBehaviour {
 
     PhotonView view;
     PlayerMovement movement;
-    TimeCollider positionHistory;
 
     [SerializeField]
     protected Transform muzzle;

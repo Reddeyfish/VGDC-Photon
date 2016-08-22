@@ -11,6 +11,9 @@ public class PlayerMovement : MonoBehaviour
     double latestData = 0;
     Vector3 prevPos = Vector3.zero;
     TimeCollider col;
+    bool grounded = false;
+    float timeSinceGrounded = 10.0f;
+    float timeSinceHitJump = 10.0f;
 
     Queue<TimestampedData<Vector3>> bufferedTargetPositions = new Queue<TimestampedData<Vector3>>();
     TimestampedData<Vector3> previousTargetPosition;
@@ -60,36 +63,60 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        if (view.isMine)
-        {
-            Vector3 movementInput = (transform.right * Input.GetAxis("Horizontal")) + (transform.forward * Input.GetAxis("Vertical")); //pull from input script
-            Vector3 rigidbodyXZ = rigid.velocity;
-            rigidbodyXZ.y = 0;
-            Vector3 movementXZ = Vector3.MoveTowards(rigidbodyXZ, movementInput * speed, Time.deltaTime * acceleration);
-            Vector3 newRigidVelocity = new Vector3(movementXZ.x, rigid.velocity.y, movementXZ.z);
-
-            if (Input.GetKeyDown(KeyCode.Space)) //pull from input script
-            {
-                newRigidVelocity.y += 10;
-            }
-
-            rigid.velocity = newRigidVelocity;
-
-            Vector3 angles = rigid.rotation.eulerAngles;
-            angles.y += Input.GetAxis("HorizontalMouse");
-            Quaternion rotation = Quaternion.Euler(angles);
-            rigid.rotation = rotation;
-
-            angles = cameraRotator.rotation.eulerAngles;
-            angles.x -= Input.GetAxis("VerticalMouse");
-            rotation = Quaternion.Euler(angles);
-            cameraRotator.rotation = rotation;
-        }
-        else
-        {
+        if (!view.isMine) {
             UpdatePosition();
             UpdateRotation();
+            return;
         }
+
+        Vector3 movementInput = (transform.right * Input.GetAxis("Horizontal")) + (transform.forward * Input.GetAxis("Vertical")); //pull from input script
+        Vector3 rigidbodyXZ = rigid.velocity;
+        rigidbodyXZ.y = 0;
+        Vector3 movementXZ = Vector3.MoveTowards(rigidbodyXZ, movementInput * speed, Time.deltaTime * acceleration);
+        Vector3 newVel = new Vector3(movementXZ.x, rigid.velocity.y, movementXZ.z);
+
+        RaycastHit info; // incase needed later
+        Vector3 start = transform.position + Vector3.up * 0.5f;
+        grounded = Physics.SphereCast(start, 0.4f, Vector3.down, out info, 0.2f);
+        grounded &= newVel.y < 10.0f;  // ensure player didn't just jump
+
+        if (grounded) {
+            timeSinceGrounded = 0.0f;
+            //Debug.DrawRay(transform.position, Vector3.up, Color.green, 10.0f);
+        } else {
+            timeSinceGrounded += Time.deltaTime;
+        }
+        if (Input.GetKeyDown(KeyCode.Space)) {  // todo: pull from input script
+            timeSinceHitJump = 0.0f;
+        } else {
+            timeSinceHitJump += Time.deltaTime;
+        }
+
+        // jump if recently grounded and recently hit jump button
+        if (timeSinceGrounded < 0.25f && timeSinceHitJump < 0.25f)
+        {
+            newVel.y = 10.0f;
+            timeSinceGrounded = 10.0f;
+            timeSinceHitJump = 10.0f;
+            grounded = false;
+        }
+
+        rigid.velocity = newVel;
+
+        // horizontal mouse look rotates transform around y axis
+        Vector3 angles = rigid.rotation.eulerAngles;
+        angles.y += Input.GetAxis("HorizontalMouse");
+        Quaternion rotation = Quaternion.Euler(angles);
+        rigid.rotation = rotation;
+
+        // vertical mouse look rotates camera around x axis
+        angles = cameraRotator.rotation.eulerAngles;
+        if (angles.x > 180.0f) angles.x -= 360.0f;
+        angles.x -= Input.GetAxis("VerticalMouse");
+        angles.x = Mathf.Clamp(angles.x, -89.0f, 89.0f);
+        rotation = Quaternion.Euler(angles);
+        cameraRotator.rotation = rotation;
+
     }
 
     void UpdatePosition()
@@ -139,14 +166,17 @@ public class PlayerMovement : MonoBehaviour
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        TimestampedData<Vector3> positionData;
+        TimestampedData<Quaternion> rotationData;
+
         if (stream.isWriting)
         {
             // We own this player: send the others our data
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
 
-            TimestampedData<Vector3> positionData = new TimestampedData<Vector3>(info.timestamp, transform.position);
-            TimestampedData<Quaternion> rotationData = new TimestampedData<Quaternion>(info.timestamp, transform.rotation);
+            positionData = new TimestampedData<Vector3>(info.timestamp, transform.position);
+            rotationData = new TimestampedData<Quaternion>(info.timestamp, transform.rotation);
 
             col.Add(positionData);
             rotationHistory.Push(rotationData);
@@ -168,14 +198,14 @@ public class PlayerMovement : MonoBehaviour
             Vector3 position = (Vector3)stream.ReceiveNext();
             Quaternion rotation = (Quaternion)stream.ReceiveNext();
 
-            TimestampedData<Vector3> positionData = new TimestampedData<Vector3>(outputTime, position);
-            TimestampedData<Quaternion> rotationData = new TimestampedData<Quaternion>(outputTime, rotation);
+            positionData = new TimestampedData<Vector3>(outputTime, position);
+            rotationData = new TimestampedData<Quaternion>(outputTime, rotation);
 
             bufferedTargetPositions.Enqueue(positionData);
             bufferedTargetRotations.Enqueue(rotationData);
-
-            col.Add(positionData);
-            rotationHistory.Push(rotationData);
         }
+
+        col.Add(positionData);
+        rotationHistory.Push(rotationData);
     }
 }
