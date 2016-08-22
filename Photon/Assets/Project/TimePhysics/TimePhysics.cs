@@ -30,6 +30,7 @@ public static class TimePhysics {
 
     public static List<TimeCollider> RaycastAll(Vector3 rayOrigin, Vector3 rayUnitDirection, double time, TimePhysicsLayers layermask = TimePhysicsLayers.ALL)
     {
+        Profiler.BeginSample("TimePhysicsRaycastAll");
         List<TimeCollider> results = new List<TimeCollider>();
         foreach (TimeCollider target in timePhysicsColliders)
         {
@@ -43,6 +44,8 @@ public static class TimePhysics {
                 results.Add(target);
             }
         }
+
+        Profiler.EndSample();
 
         return results;
     }

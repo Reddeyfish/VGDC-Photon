@@ -49,9 +49,7 @@ public class PlayerActions : MonoBehaviour {
     void FireWeapon(Vector3 position, Vector3 direction, PhotonMessageInfo info)
     {
         GameObject bulletVFX = Instantiate(bulletVFXPrefab);
-        LineRenderer bulletLineRenderer = bulletVFX.GetComponent<LineRenderer>();
-        bulletLineRenderer.SetPosition(0, position);
-        bulletLineRenderer.SetPosition(1, position + 100 * direction);
+        bulletVFX.GetComponent<RaygunRay>().playShotVFX(position, direction);
         Destroy(bulletVFX, 2);
 
         if (view.isMine)
@@ -61,11 +59,6 @@ public class PlayerActions : MonoBehaviour {
         else
         {
             Destroy(Instantiate(muzzleVFXPrefab, muzzle.position, Quaternion.identity), 1);
-
-            if (!PhotonNetwork.isMasterClient)
-            {
-                return;
-            }
 
             List<TimeCollider> hitColliders = TimePhysics.RaycastAll(position, direction, info.timestamp - movement.BufferDelaySecs);
 

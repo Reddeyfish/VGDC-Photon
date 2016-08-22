@@ -6,20 +6,6 @@ using System.Collections;
 
 public class Tags{
     public const string player = "Player";
-    public const string canvas = "Canvas";
-    public const string untagged = "Untagged";
-    public const string stage = "Stage";
-    public const string puck = "Puck";
-    public const string gameController = "GameController";
-
-    public class Scenes
-    {
-        public const string root = "RootScene";
-#if UNITY_EDITOR
-        public const string derek = "Derek";
-#endif
-        public const string select = "PlayerRegistration";
-    }
 
     //public class Axis
     //{
@@ -29,8 +15,6 @@ public class Tags{
 
     public class Layers
     {
-        public const string movable = "Movables";
-        public const string stage = "Stage";
     }
 
     public class SortingLayers
