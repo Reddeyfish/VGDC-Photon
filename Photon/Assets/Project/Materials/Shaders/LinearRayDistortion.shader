@@ -66,7 +66,9 @@
 				half distortion = min(i.uv.y, 1 - i.uv.y);
 				distortion = attenuation * 4 * distortion * distortion;
 
+				float3 distortionVector = _DistortionStrength * i.color.a * distortion * i.rayDirectionClip;
 				float4 distortedGrabUVs = i.uv_grab;
+				distortedGrabUVs.xyz -= distortionVector;
 				col += tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(distortedGrabUVs));
 
 				return col;
