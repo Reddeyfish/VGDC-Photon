@@ -143,8 +143,6 @@ public class PlayerMovement : MonoBehaviour
             nextTargetPosition = bufferedTargetPositions.Dequeue();
         }
 
-        Debug.Log(bufferedTargetPositions.Count);
-
         float lerpValue = Mathd.InverseLerp(previousTargetPosition.outputTime, nextTargetPosition.outputTime, PhotonNetwork.time);
         Vector3 targetPosition = Vector3.LerpUnclamped(previousTargetPosition, nextTargetPosition, lerpValue);
 
@@ -167,21 +165,17 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdateRotation()
     {
-        if (bufferedTargetRotations.Count != 0 && bufferedTargetRotations.Peek().outputTime < PhotonNetwork.time)
+        while (bufferedTargetRotations.Count != 0 && nextTargetRotation.outputTime < PhotonNetwork.time)
         {
             //we have new data we can use
+            previousTargetRotation = nextTargetRotation;
             nextTargetRotation = bufferedTargetRotations.Dequeue();
         }
 
-        if (bufferedTargetRotations.Count != 0)
-        {
-            float lerpValue = Mathd.InverseLerp(nextTargetRotation.outputTime, bufferedTargetRotations.Peek().outputTime, PhotonNetwork.time);
+        float lerpValue = Mathd.InverseLerp(previousTargetRotation.outputTime, nextTargetRotation.outputTime, PhotonNetwork.time);
+        Quaternion newRotation = Quaternion.SlerpUnclamped(previousTargetRotation, nextTargetRotation, lerpValue);
 
-            transform.rotation = Quaternion.Slerp(nextTargetRotation, bufferedTargetRotations.Peek(), lerpValue);
-        }
-        else{
-            transform.rotation = (nextTargetRotation);
-        }
+        transform.rotation = newRotation;
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -217,6 +211,8 @@ public class PlayerMovement : MonoBehaviour
 
             positionData = new TimestampedData<Vector3>(outputTime, position);
             rotationData = new TimestampedData<Quaternion>(outputTime, rotation);
+
+            Debug.Log(bufferedTargetPositions.Count);
 
             bufferedTargetPositions.Enqueue(positionData);
             bufferedTargetRotations.Enqueue(rotationData);

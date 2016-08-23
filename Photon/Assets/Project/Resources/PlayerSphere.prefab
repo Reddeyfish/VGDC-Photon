@@ -517,7 +517,7 @@ MonoBehaviour:
   speed: 5
   acceleration: 40
   jumpStrengthMS: 10
-  bufferDelaySecs: 0.5
+  bufferDelaySecs: 0.4
   cameraRotator: {fileID: 4000011270066636}
 --- !u!135 &135000012123218630
 SphereCollider:
