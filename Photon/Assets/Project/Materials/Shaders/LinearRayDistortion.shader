@@ -35,7 +35,8 @@
 			struct v2f
 			{
 				half2 uv : TEXCOORD0;
-				float4 vertex_obj : TEXCOOD1;
+				float4 uv_grab : TEXCOOD1;
+				float3 rayDirectionClip : TEXCOORD2;
 				float4 vertex : SV_POSITION;
 				float4 color : COLOR;
 			};
@@ -50,23 +51,25 @@
 				o.color = v.color;
 				o.uv = v.uv;
 				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.vertex_obj = v.vertex;
+				o.uv_grab = ComputeGrabScreenPos(o.vertex);
+				o.rayDirectionClip = UnityObjectToClipVec(float3(0, 1, 0));
 				return o;
 			}
 			
 			fixed4 frag (v2f i) : COLOR
 			{
 				half attenuation = min(60 * i.uv.x, 1);
+
 				fixed4 col = tex2D(_MainTex, i.uv);
 				col.rgb *= attenuation * col.a * i.color.a * i.color.rgb;
+
 				half distortion = min(i.uv.y, 1 - i.uv.y);
 				distortion = attenuation * 4 * distortion * distortion;
-				float4 distortionVector = float4(0, _DistortionStrength * i.color.a * distortion, 0, 0);
-				float4 distortedGrabUVs = ComputeGrabScreenPos(UnityObjectToClipPos(i.vertex_obj - distortionVector));
+
+				float4 distortedGrabUVs = i.uv_grab;
 				col += tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(distortedGrabUVs));
 
 				return col;
-				//return half4(UnityObjectToWorldDir(float3(0, 1, 0)), 1);
 			}
 			ENDCG
 		}
