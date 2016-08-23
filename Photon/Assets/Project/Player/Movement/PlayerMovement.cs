@@ -16,17 +16,26 @@ public class PlayerMovement : MonoBehaviour
     float timeSinceHitJump = 10.0f;
 
     Queue<TimestampedData<Vector3>> bufferedTargetPositions = new Queue<TimestampedData<Vector3>>();
+
+    /// <summary>
+    /// The position we are using as the start point of interpolation.
+    /// </summary>
     TimestampedData<Vector3> previousTargetPosition;
     /// <summary>
-    /// The most recent target position data whose outputTime is in the past.
+    /// The position we are using as the endpoint of interpolation.
     /// </summary>
-    TimestampedData<Vector3> currentTargetPosition;
+    TimestampedData<Vector3> nextTargetPosition;
 
     Queue<TimestampedData<Quaternion>> bufferedTargetRotations = new Queue<TimestampedData<Quaternion>>();
+
     /// <summary>
-    /// THe most recent target rotation data whose outputTime is in the past.
+    /// The rotation we are using as the start point of interpolation.
     /// </summary>
-    TimestampedData<Quaternion> currentTargetRotation;
+    TimestampedData<Quaternion> previousTargetRotation;
+    /// <summary>
+    /// The rotation we are using as the endpoint of interpolation.
+    /// </summary>
+    TimestampedData<Quaternion> nextTargetRotation;
 
     Stack<TimestampedData<Quaternion>> rotationHistory = new Stack<TimestampedData<Quaternion>>();
 
@@ -35,6 +44,10 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField]
     protected float acceleration;
+
+    [SerializeField]
+    [Tooltip("jump speed in meters per second")]
+    protected float jumpStrengthMS;
 
     [SerializeField]
     protected double bufferDelaySecs;
@@ -52,8 +65,10 @@ public class PlayerMovement : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         view = GetComponent<PhotonView>();
         col = GetComponent<TimeCollider>();
-        currentTargetPosition = previousTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time, this.transform.position);
-        currentTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time, this.transform.rotation);
+        previousTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time - 1, this.transform.position);
+        nextTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time, this.transform.position);
+        previousTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time - 1, this.transform.rotation);
+        nextTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time, this.transform.rotation);
         if (!view.isMine)
         {
             Destroy(rigid);
@@ -95,7 +110,7 @@ public class PlayerMovement : MonoBehaviour
         // jump if recently grounded and recently hit jump button
         if (timeSinceGrounded < 0.25f && timeSinceHitJump < 0.25f)
         {
-            newVel.y = 10.0f;
+            newVel.y = jumpStrengthMS;
             timeSinceGrounded = 10.0f;
             timeSinceHitJump = 10.0f;
             grounded = false;
@@ -121,28 +136,33 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdatePosition()
     {
-        while (bufferedTargetPositions.Count != 0 && bufferedTargetPositions.Peek().outputTime < PhotonNetwork.time)
+        while (bufferedTargetPositions.Count != 0 && nextTargetPosition.outputTime < PhotonNetwork.time)
         {
             //we have new data we can use
-            previousTargetPosition = currentTargetPosition;
-            currentTargetPosition = bufferedTargetPositions.Dequeue();
+            previousTargetPosition = nextTargetPosition;
+            nextTargetPosition = bufferedTargetPositions.Dequeue();
         }
 
+        Debug.Log(bufferedTargetPositions.Count);
 
-        if (bufferedTargetPositions.Count > 0)
-        {
-            float lerpValue = Mathd.InverseLerp(currentTargetPosition.outputTime, bufferedTargetPositions.Peek().outputTime, PhotonNetwork.time);
+        float lerpValue = Mathd.InverseLerp(previousTargetPosition.outputTime, nextTargetPosition.outputTime, PhotonNetwork.time);
+        Vector3 targetPosition = Vector3.LerpUnclamped(previousTargetPosition, nextTargetPosition, lerpValue);
 
-            Vector3 newPosition = Vector3.LerpUnclamped(currentTargetPosition, bufferedTargetPositions.Peek(), lerpValue);
+        Debug.DrawLine(previousTargetPosition, nextTargetPosition);
 
-            Debug.DrawRay(Vector3.zero, newPosition);
+        //limit our movement each frame to our max speed (with respect to the different dimensions). This prevents the jittery appearance of extrapolated data
+        Vector3 currentPositionXZ = transform.position;
+        currentPositionXZ.y = 0;
+        Vector3 targetPositionXZ = targetPosition;
+        targetPositionXZ.y = 0;
 
-            transform.position = newPosition;
-        }
-        else
-        {
-            Debug.LogError("Buffer Empty");
-        }
+        Vector3 newPosition = Vector3.MoveTowards(currentPositionXZ, targetPositionXZ, speed);
+
+        float currentPositionY = transform.position.y;
+        float targetPositionY = targetPosition.y;
+        newPosition.y = Mathf.MoveTowards(currentPositionY, targetPositionY, jumpStrengthMS);
+
+        transform.position = newPosition;
     }
 
     void UpdateRotation()
@@ -150,17 +170,17 @@ public class PlayerMovement : MonoBehaviour
         if (bufferedTargetRotations.Count != 0 && bufferedTargetRotations.Peek().outputTime < PhotonNetwork.time)
         {
             //we have new data we can use
-            currentTargetRotation = bufferedTargetRotations.Dequeue();
+            nextTargetRotation = bufferedTargetRotations.Dequeue();
         }
 
         if (bufferedTargetRotations.Count != 0)
         {
-            float lerpValue = Mathd.InverseLerp(currentTargetRotation.outputTime, bufferedTargetRotations.Peek().outputTime, PhotonNetwork.time);
+            float lerpValue = Mathd.InverseLerp(nextTargetRotation.outputTime, bufferedTargetRotations.Peek().outputTime, PhotonNetwork.time);
 
-            transform.rotation = Quaternion.Slerp(currentTargetRotation, bufferedTargetRotations.Peek(), lerpValue);
+            transform.rotation = Quaternion.Slerp(nextTargetRotation, bufferedTargetRotations.Peek(), lerpValue);
         }
         else{
-            transform.rotation = (currentTargetRotation);
+            transform.rotation = (nextTargetRotation);
         }
     }
 
@@ -177,9 +197,6 @@ public class PlayerMovement : MonoBehaviour
 
             positionData = new TimestampedData<Vector3>(info.timestamp, transform.position);
             rotationData = new TimestampedData<Quaternion>(info.timestamp, transform.rotation);
-
-            col.Add(positionData);
-            rotationHistory.Push(rotationData);
         }
         else
         {

@@ -61,6 +61,7 @@ public class RaygunRay : MonoBehaviour {
 
     void OnDrawGizmosSelected()
     {
+        Gizmos.color = Color.red;
         Gizmos.DrawMesh(mesh);
     }
 }

@@ -516,7 +516,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   acceleration: 40
-  bufferDelaySecs: 10
+  jumpStrengthMS: 10
+  bufferDelaySecs: 0.5
   cameraRotator: {fileID: 4000011270066636}
 --- !u!135 &135000012123218630
 SphereCollider:
