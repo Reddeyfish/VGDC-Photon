@@ -9,7 +9,6 @@ public class PlayerMovement : MonoBehaviour
     PhotonView view;
     Vector3 movementInput;
     double latestData = 0;
-    Vector3 prevPos = Vector3.zero;
     TimeCollider col;
     bool grounded = false;
     float timeSinceGrounded = 10.0f;
@@ -26,18 +25,18 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     TimestampedData<Vector3> nextTargetPosition;
 
-    Queue<TimestampedData<Quaternion>> bufferedTargetRotations = new Queue<TimestampedData<Quaternion>>();
+    Queue<TimestampedData<FPSRotation>> bufferedTargetRotations = new Queue<TimestampedData<FPSRotation>>();
 
     /// <summary>
     /// The rotation we are using as the start point of interpolation.
     /// </summary>
-    TimestampedData<Quaternion> previousTargetRotation;
+    TimestampedData<FPSRotation> previousTargetRotation;
     /// <summary>
     /// The rotation we are using as the endpoint of interpolation.
     /// </summary>
-    TimestampedData<Quaternion> nextTargetRotation;
+    TimestampedData<FPSRotation> nextTargetRotation;
 
-    Stack<TimestampedData<Quaternion>> rotationHistory = new Stack<TimestampedData<Quaternion>>();
+    Stack<TimestampedData<FPSRotation>> rotationHistory = new Stack<TimestampedData<FPSRotation>>();
 
     [SerializeField]
     protected float speed;
@@ -67,8 +66,8 @@ public class PlayerMovement : MonoBehaviour
         col = GetComponent<TimeCollider>();
         previousTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time - 1, this.transform.position);
         nextTargetPosition = new TimestampedData<Vector3>(PhotonNetwork.time, this.transform.position);
-        previousTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time - 1, this.transform.rotation);
-        nextTargetRotation = new TimestampedData<Quaternion>(PhotonNetwork.time, this.transform.rotation);
+        previousTargetRotation = new TimestampedData<FPSRotation>(PhotonNetwork.time - 1, cameraRotator.rotation);
+        nextTargetRotation = new TimestampedData<FPSRotation>(PhotonNetwork.time, cameraRotator.rotation);
         if (!view.isMine)
         {
             Destroy(rigid);
@@ -173,24 +172,26 @@ public class PlayerMovement : MonoBehaviour
         }
 
         float lerpValue = Mathd.InverseLerp(previousTargetRotation.outputTime, nextTargetRotation.outputTime, PhotonNetwork.time);
-        Quaternion newRotation = Quaternion.SlerpUnclamped(previousTargetRotation, nextTargetRotation, lerpValue);
+        FPSRotation newRotation = Quaternion.SlerpUnclamped((FPSRotation)previousTargetRotation, (FPSRotation)nextTargetRotation, lerpValue);
 
-        transform.rotation = newRotation;
+        transform.localRotation = Quaternion.Euler(0, newRotation.yaw, 0);
+        cameraRotator.localRotation = Quaternion.Euler(newRotation.pitch, 0, 0);
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         TimestampedData<Vector3> positionData;
-        TimestampedData<Quaternion> rotationData;
+        TimestampedData<FPSRotation> rotationData;
 
         if (stream.isWriting)
         {
-            // We own this player: send the others our data
-            stream.SendNext(transform.position);
-            stream.SendNext(cameraRotator.rotation);
-
             positionData = new TimestampedData<Vector3>(info.timestamp, transform.position);
-            rotationData = new TimestampedData<Quaternion>(info.timestamp, cameraRotator.rotation);
+            rotationData = new TimestampedData<FPSRotation>(info.timestamp, cameraRotator.rotation);
+
+            // We own this player: send the others our data
+            stream.SendNext(positionData.data);
+            stream.SendNext(rotationData.data.pitch);
+            stream.SendNext(rotationData.data.yaw);
         }
         else
         {
@@ -207,10 +208,10 @@ public class PlayerMovement : MonoBehaviour
             double outputTime = recieveTime + bufferDelaySecs; //This is the time at which we will display the player at this position.
 
             Vector3 position = (Vector3)stream.ReceiveNext();
-            Quaternion rotation = (Quaternion)stream.ReceiveNext();
+            FPSRotation rotation = new FPSRotation((float)stream.ReceiveNext(), (float)stream.ReceiveNext());
 
             positionData = new TimestampedData<Vector3>(outputTime, position);
-            rotationData = new TimestampedData<Quaternion>(outputTime, rotation);
+            rotationData = new TimestampedData<FPSRotation>(outputTime, rotation);
 
             //Debug.Log(bufferedTargetPositions.Count);
 

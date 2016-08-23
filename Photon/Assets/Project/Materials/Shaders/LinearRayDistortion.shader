@@ -35,7 +35,7 @@
 			struct v2f
 			{
 				half2 uv : TEXCOORD0;
-				float4 uv_grab : TEXCOOD1;
+				float4 uv_grab : TEXCOORD1;
 				float3 rayDirectionClip : TEXCOORD2;
 				float4 vertex : SV_POSITION;
 				float4 color : COLOR;
