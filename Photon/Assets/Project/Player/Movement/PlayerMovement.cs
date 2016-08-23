@@ -187,10 +187,10 @@ public class PlayerMovement : MonoBehaviour
         {
             // We own this player: send the others our data
             stream.SendNext(transform.position);
-            stream.SendNext(transform.rotation);
+            stream.SendNext(cameraRotator.rotation);
 
             positionData = new TimestampedData<Vector3>(info.timestamp, transform.position);
-            rotationData = new TimestampedData<Quaternion>(info.timestamp, transform.rotation);
+            rotationData = new TimestampedData<Quaternion>(info.timestamp, cameraRotator.rotation);
         }
         else
         {
@@ -212,7 +212,7 @@ public class PlayerMovement : MonoBehaviour
             positionData = new TimestampedData<Vector3>(outputTime, position);
             rotationData = new TimestampedData<Quaternion>(outputTime, rotation);
 
-            Debug.Log(bufferedTargetPositions.Count);
+            //Debug.Log(bufferedTargetPositions.Count);
 
             bufferedTargetPositions.Enqueue(positionData);
             bufferedTargetRotations.Enqueue(rotationData);
