@@ -38,4 +38,6 @@ MonoBehaviour:
   - RequestForPickupTimes
   - TaggedPlayer
   - FireWeapon
+  - SetLevelSeed
+  - InitializeLevel
   DisableAutoOpenWizard: 1
