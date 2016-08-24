@@ -113,11 +113,11 @@ public abstract class TimeCollider : MonoBehaviour
         return end; //we have reached the end of all the data we have
     }
 
-    public abstract bool raycastHit(Vector3 rayOrigin, Vector3 rayUnitDirection, double time);
+    public abstract bool raycastHit(Vector3 rayOrigin, Vector3 rayUnitDirection, double time, float distance = 2048f);
 
-    public bool raycastHit(Ray ray, double time)
+    public bool raycastHit(Ray ray, double time, float distance = 2048f)
     {
-        return raycastHit(ray.origin, ray.direction, time);
+        return raycastHit(ray.origin, ray.direction, time, distance);
     }
 
     protected abstract void OnDrawGizmosSelected();

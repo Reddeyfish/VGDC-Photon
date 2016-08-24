@@ -42,7 +42,7 @@ public class PlayerActions : MonoBehaviour {
 
     void FireWeapon()
     {
-        view.RPC("FireWeapon", PhotonTargets.All, muzzle.position, playerCamera.forward);
+        view.RPC("FireWeapon", PhotonTargets.All, muzzle.position, playerCamera.forward.normalized);
     }
 
     [PunRPC]

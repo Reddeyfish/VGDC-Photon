@@ -9,7 +9,7 @@ public class TimeSphereCollider : TimeCollider
     [SerializeField]
     protected float radius = 1;
 
-    public override bool raycastHit(Vector3 rayOrigin, Vector3 rayUnitDirection, double time)
+    public override bool raycastHit(Vector3 rayOrigin, Vector3 rayUnitDirection, double time, float distance = 2048f)
     {
         if (!TimeInRange(time))
         {
@@ -17,7 +17,7 @@ public class TimeSphereCollider : TimeCollider
         }
         else
         {
-            return TimePhysics.SphereIntersection(PositionAtTime(time), radius, rayOrigin, rayUnitDirection);
+            return TimePhysics.InternalLogic.SphereLineSegmentIntersection(PositionAtTime(time), radius, rayOrigin, rayUnitDirection, distance);
         }
     }
 
