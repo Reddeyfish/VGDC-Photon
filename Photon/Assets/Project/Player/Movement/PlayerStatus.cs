@@ -6,19 +6,20 @@ public class PlayerStatus : MonoBehaviour {
 
     PhotonView view;
 
-    float _health = 0;
+    float _health = 1;
     public float health
     {
         get { return _health; }
         set
         {
             _health = value;
-            healthbar.text = _health.ToString();
+            if (_health < 0) _health = 1; //cheap respawn logic until that's actually implemented
+            healthbar.HealthPercentage = Mathf.Clamp01(_health);
         }
     }
 
     [SerializeField]
-    protected Text healthbar;
+    protected HealthBarView healthbar;
 
     [SerializeField]
     protected Text username;

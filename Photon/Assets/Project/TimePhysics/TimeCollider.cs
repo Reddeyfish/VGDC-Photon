@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public abstract class TimeCollider : MonoBehaviour
 {
+    public Vector3 offset;
+
     Stack<TimestampedData<Vector3>> positionHistory = new Stack<TimestampedData<Vector3>>();
     public IEnumerable<TimestampedData<Vector3>> PositionHistory { get { return positionHistory; } }
 
@@ -57,6 +59,11 @@ public abstract class TimeCollider : MonoBehaviour
         if (positionHistory.Count == 0)
         {
             beginTime = data.outputTime;
+        }
+
+        if (offset.sqrMagnitude > 0)
+        {
+            data = new TimestampedData<Vector3>(data.outputTime, data + offset);
         }
 
         positionHistory.Push(data);

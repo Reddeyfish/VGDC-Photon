@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - 4: {fileID: 4000011248826412}
   - 33: {fileID: 33000010465203752}
-  - 135: {fileID: 135000011585542526}
   - 23: {fileID: 23000010220966336}
   m_Layer: 0
   m_Name: TargetSphere
@@ -78,15 +77,3 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000014174867870}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!135 &135000011585542526
-SphereCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000014174867870}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}

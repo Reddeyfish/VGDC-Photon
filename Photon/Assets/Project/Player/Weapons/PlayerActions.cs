@@ -66,7 +66,7 @@ public class PlayerActions : MonoBehaviour {
             {
                 if (col.transform != this.transform)
                 {
-                    col.GetComponent<PlayerStatus>().health += 1;
+                    col.GetComponent<PlayerStatus>().health -= 0.25f;
 #if UNITY_EDITOR
                     Destroy(Instantiate(targetSpherePrefab, col.PositionAtTime(info.timestamp - movement.BufferDelaySecs), Quaternion.identity), 2);
 #endif
