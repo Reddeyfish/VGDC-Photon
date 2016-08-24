@@ -37,6 +37,10 @@ public class SpawnPlayer : Photon.MonoBehaviour {
             seed = Random.Range(0, 1000000);
             level.BuildBuildings(seed);
             SpawnMyPlayer();
+
+            ExitGames.Client.Photon.Hashtable newCustomProperties = new ExitGames.Client.Photon.Hashtable();
+            newCustomProperties["seed"] = seed;
+            PhotonNetwork.room.SetCustomProperties(newCustomProperties);
         } 
     }
 

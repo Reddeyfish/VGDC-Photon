@@ -5,6 +5,7 @@ public class PlayerActions : MonoBehaviour {
 
     PhotonView view;
     PlayerMovement movement;
+    LayerMask staticOnly;
 
     [SerializeField]
     protected Transform muzzle;
@@ -25,6 +26,7 @@ public class PlayerActions : MonoBehaviour {
 	void Start () {
         view = GetComponent<PhotonView>();
         movement = GetComponent<PlayerMovement>();
+        staticOnly = LayerMask.GetMask(Tags.Layers.Static);
 	}
 	
 	// Update is called once per frame

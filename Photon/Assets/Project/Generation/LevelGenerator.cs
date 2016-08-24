@@ -132,6 +132,7 @@ public class LevelGenerator : MonoBehaviour {
 
         GameObject go = new GameObject(name);
         go.AddComponent<MeshFilter>().sharedMesh = mesh;
+        go.layer = LayerMask.NameToLayer(Tags.Layers.Static);
         //go.isStatic = true;
         MeshRenderer mr = go.AddComponent<MeshRenderer>();
         mr.material = buildingMat;

@@ -4,17 +4,23 @@ using System.Collections;
 
 // for the autocomplete!
 
-public class Tags{
+public static class Tags{
     public const string player = "Player";
 
-    //public class Axis
+    //public static class Axis
     //{
     //    //public const string horizontal = "Horizontal";
     //    //public const string vertical = "Vertical";
     //}
 
-    public class Layers
+    public static class LayerNumbers
     {
+        public const int Static = 18;
+    }
+
+    public static class Layers
+    {
+        public const string Static = "Static Geometry";
     }
 
     public class SortingLayers
@@ -22,21 +28,21 @@ public class Tags{
         public const string overlay = "Overlay";
     }
 
-    public class AnimatorParams
+    public static class AnimatorParams
     {
     }
 
-    public class PlayerPrefKeys
+    public static class PlayerPrefKeys
     {
     }
 
-    public class Options
+    public static class Options
     {
         public const string SoundLevel = "SoundLevel";
         public const string MusicLevel = "MusicLevel";
     }
 
-    public class ShaderParams
+    public static class ShaderParams
     {
         public static int color = Shader.PropertyToID("_Color");
         public static int emission = Shader.PropertyToID("_EmissionColor");
