@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerStatus : MonoBehaviour {
 
@@ -13,7 +13,11 @@ public class PlayerStatus : MonoBehaviour {
         set
         {
             _health = value;
-            if (_health < 0) _health = 1; //cheap respawn logic until that's actually implemented
+            if (_health < 0)
+            {
+                _health = 1; //cheap respawn logic until that's actually implemented
+                this[Stats.DEATHS] += 1;
+            }
             healthbar.HealthPercentage = Mathf.Clamp01(_health);
         }
     }
@@ -50,5 +54,25 @@ public class PlayerStatus : MonoBehaviour {
     public void UpdateUsername()
     {
         username.text = view.owner.name;
+    }
+
+    //Stat tracking
+    private Dictionary<int, float> stats = new Dictionary<int,float>();
+
+    public float this[int i]
+    {
+        get { return stats[i]; }
+        set { stats[i] = value; }
+    }
+
+    /// <summary>
+    /// For example, this[Stats.DEATHS] += 1;
+    /// </summary>
+    /// <param name="i"></param>
+    /// <returns></returns>
+    public float this[Stats i]
+    {
+        get { return stats[i]; }
+        set { stats[i] = value; }
     }
 }
