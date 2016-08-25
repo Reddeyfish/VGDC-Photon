@@ -50,8 +50,16 @@ public class PlayerActions : MonoBehaviour {
     [PunRPC]
     void FireWeapon(Vector3 position, Vector3 direction, PhotonMessageInfo info)
     {
+        RaycastHit hit;
+        Physics.Raycast(position, direction, out hit, maxDistance: 2048, layerMask: staticOnly, queryTriggerInteraction: QueryTriggerInteraction.UseGlobal);
+
+        Debug.Log(hit.distance);
+        Debug.Log(hit.collider.name);
+
+        float distance01 = hit.distance / RaygunRay.length;
+
         GameObject bulletVFX = Instantiate(bulletVFXPrefab);
-        bulletVFX.GetComponent<RaygunRay>().playShotVFX(position, direction);
+        bulletVFX.GetComponent<RaygunRay>().playShotVFX(position, direction, distance01);
         Destroy(bulletVFX, 2);
 
         if (view.isMine)
@@ -62,7 +70,7 @@ public class PlayerActions : MonoBehaviour {
         {
             Destroy(Instantiate(muzzleVFXPrefab, muzzle.position, Quaternion.identity), 1);
 
-            List<TimeCollider> hitColliders = TimePhysics.RaycastAll(position, direction, info.timestamp - movement.BufferDelaySecs);
+            List<TimeCollider> hitColliders = TimePhysics.RaycastAll(position, direction, info.timestamp - movement.BufferDelaySecs, hit.distance);
 
             foreach (TimeCollider col in hitColliders)
             {

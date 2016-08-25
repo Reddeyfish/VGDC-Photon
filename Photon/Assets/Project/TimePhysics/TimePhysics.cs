@@ -13,6 +13,7 @@ public static class TimePhysics {
 
             //a = 1, since direction is a unit vector
             Assert.IsTrue(rayDirection.sqrMagnitude == 1);
+            rayDirection.Normalize();
 
             float b = 2 * (Vector3.Dot(rayDirection, rayOrigin - spherePos));
 
@@ -32,14 +33,12 @@ public static class TimePhysics {
 
         public static bool SphereLineSegmentIntersection(Vector3 spherePos, float radius, Vector3 rayOrigin, Vector3 rayDirection, float distance = 2048f)
         {
+            Assert.IsTrue(rayDirection.sqrMagnitude == 1);
+            rayDirection.Normalize();
             //This doesn't account for a few edge cases involving an endpoint inside the sphere.
 
             //http://paulbourke.net/geometry/circlesphere/index.html#linesphere
-            Assert.IsTrue(rayDirection.sqrMagnitude == 1);
-            if (rayDirection.sqrMagnitude != 1)
-            {
-                Debug.LogError(rayDirection.sqrMagnitude);
-            }
+            
 
             //check if our segment has the possibility to intersect. U is interpolation value of the closest point (0 for rayOrigin, 1 for rayEnd)
             float u = Vector3.Dot(spherePos - rayOrigin, distance * rayDirection)

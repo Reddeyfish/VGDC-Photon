@@ -5,10 +5,13 @@ using System.Collections;
 [RequireComponent(typeof(MeshRenderer))]
 public class RaygunRay : MonoBehaviour {
 
+    public const float length = 60;
+
     ParticleSystem vfx;
     MeshRenderer firedRay;
     Mesh mesh;
     Vector3 direction;
+    Material mat;
 
     [SerializeField]
     protected float width;
@@ -22,10 +25,11 @@ public class RaygunRay : MonoBehaviour {
         vfx = GetComponentInChildren<ParticleSystem>();
         firedRay = GetComponentInChildren<MeshRenderer>();
         firedRay.sortingLayerName = Tags.SortingLayers.overlay;
+        mat = firedRay.material;
         MeshFilter filter = GetComponent<MeshFilter>();
         mesh = filter.mesh;
 
-        Vector3[] vertices = new Vector3[] { new Vector3(-width / 2, 0, 0), new Vector3(width / 2, 0, 0), new Vector3(-width / 2, 60, 0), new Vector3(width / 2, 60, 0) };
+        Vector3[] vertices = new Vector3[] { new Vector3(-width / 2, 0, 0), new Vector3(width / 2, 0, 0), new Vector3(-width / 2, length, 0), new Vector3(width / 2, length, 0) };
         Vector2[] uvs = new Vector2[] {Vector2.zero, Vector2.up, Vector2.right, Vector2.one};
         int[] tris = new int[]{3, 2, 1, 0, 1, 2};
 
@@ -45,10 +49,11 @@ public class RaygunRay : MonoBehaviour {
         transform.rotation = Quaternion.LookRotation(viewDir, direction);
     }
 
-    public void playShotVFX(Vector3 origin, Vector3 direction)
+    public void playShotVFX(Vector3 origin, Vector3 direction, float cutoff)
     {
         transform.position = origin;
         this.direction = direction;
+        mat.SetFloat(Tags.ShaderParams.cutoff, cutoff);
         vfx.Play();
         firedRay.enabled = true;
         Callback.DoLerp((float l) =>

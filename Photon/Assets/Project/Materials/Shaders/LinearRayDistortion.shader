@@ -4,6 +4,7 @@
 	{
 		_MainTex("Main Texture", 2D) = "white"
 		_DistortionStrength ("DistortionStrength", Float) = 1
+		_Cutoff("Distance Cutoff", Float) = 1
 	}
 	SubShader
 	{
@@ -44,6 +45,7 @@
 			sampler2D _GrabTexture;
 			sampler2D _MainTex;
 			half _DistortionStrength;
+			fixed _Cutoff;
 			
 			v2f vert (appdata v)
 			{
@@ -58,6 +60,10 @@
 			
 			fixed4 frag (v2f i) : COLOR
 			{
+				if(i.uv.x > _Cutoff)
+				{
+					return tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uv_grab));
+				}
 				half attenuation = min(60 * i.uv.x, 1);
 
 				fixed4 col = tex2D(_MainTex, i.uv);
